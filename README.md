@@ -11,6 +11,14 @@ Make sure your work is committed and pushed to your repository before submission
 
 Good luck!
 
+# AIOps Scenario
+
+This project simulates monitoring for a `payment-service`. Operational records
+contain service metrics and log information. An anomaly detector evaluates each
+record, creates an anomaly event for abnormal behaviour, and sends that event
+through an in-memory producer, topic, and consumer to the downstream AIOps
+output.
+
 # Analyse Logs and Metrics
 
 The analysis below is based on all 10 observations in `data/service_data.json`.
@@ -19,17 +27,18 @@ The analysis below is based on all 10 observations in `data/service_data.json`.
 
 These numeric fields measure the service's runtime behaviour:
 
- Field             |    Meaning                            |  Observed values 
- 
-`response_time_ms` | Request response time in milliseconds | 120-640  `cpu_percent`      | CPU utilisation percentage            | 42-94% 
- `memory_percent`  | Memory utilisation percentage         | 51-91% 
+| Field | Meaning | Observed values |
+| --- | --- | --- |
+| `response_time_ms` | Request response time in milliseconds | `120-640` |
+| `cpu_percent` | CPU utilisation percentage | `42-94%` |
+| `memory_percent` | Memory utilisation percentage | `51-91%` |
 
 `service` is a service identifier or dimension, rather than a metric. The other fields are operational metadata or log content.
 
-### 2. Log information
+# 2. Log information
 
 | Field | Role |
-| --- | --- |
+
 | `timestamp` | Time at which the observation and log event occurred |
 | `service` | Service that emitted the observation |
 | `log_level` | Event severity (`INFO` or `ERROR`) |
@@ -47,10 +56,10 @@ The records at `10:00`-`10:04` and `10:07`-`10:09` appear normal because each ha
 
 The observations at `10:05` and `10:06` are unusual:
 
- Timestamp              | Log evidence                       | Metric evidence                           
+| Timestamp | Log evidence | Metric evidence |
 
-  `2026-09-20T10:05:00` |`ERROR`: `Payment service timeout` | Response time `610 ms`, CPU `75%`, memory `70%` 
-`2026-09-20T10:06:00`  | `ERROR`: `Database connection timeout` | Response time `640 ms`, CPU `94%`, memory `91%` 
+| `2026-09-20T10:05:00` | `ERROR`: `Payment service timeout` | Response time `610 ms`, CPU `75%`, memory `70%` |
+| `2026-09-20T10:06:00` | `ERROR`: `Database connection timeout` | Response time `640 ms`, CPU `94%`, memory `91%` |
 
 These two records are clear outliers compared with the surrounding baseline. They combine error-level events and timeout messages with a roughly four-times increase in response time and substantially higher CPU and memory utilisation. The return to normal-looking values at `10:07` suggests the incident lasted about two minutes. Since this is synthetic data and no alert thresholds are supplied, “unusual” here is based on the strong contrast with the other observations and the accompanying `ERROR` messages.
 
@@ -101,16 +110,19 @@ configurable thresholds based on historical service behaviour would improve the
 detection approach.
 
 
-# Verify the AIOps Event Flow
+## Verify the AIOps Event Flow
 
 The provided AIOps pipeline was executed with:
 
 ```bash
-python aiops_pipeline.py ```
+python -m src.aiops_pipeline
+```
 
+```text
 Records processed: 10
 Anomalies detected: 2
 Events consumed: 2
+```
 
 The event flow was verified as follows:
 
@@ -123,8 +135,8 @@ The consumed events were returned by the pipeline and printed by the downstream 
 
 The detected events were:
 
-2026-09-20T10:05:00: High response time and concerning ERROR log level.
-2026-09-20T10:06:00: High response time, high CPU utilization, high memory utilization, and concerning ERROR log level. 
+- `2026-09-20T10:05:00`: High response time and concerning `ERROR` log level.
+- `2026-09-20T10:06:00`: High response time, high CPU utilization, high memory utilization, and concerning `ERROR` log level.
 
 
 The workflow initially had two issues:
@@ -137,7 +149,7 @@ The corrected workflow processed 10 records and detected 2 anomalies:
 - `2026-09-20T10:05:00`: high response time and concerning `ERROR` log level.
 - `2026-09-20T10:06:00`: high response time, high CPU utilization, high memory utilization, and concerning `ERROR` log level.
 
-# Execute the End-to-End Pipeline
+## Execute the End-to-End Pipeline
 
 The complete event flow is:
 
@@ -148,4 +160,27 @@ Operational Data
     -> Event Producer
     -> anomaly-events Topic
     -> Event Consumer
-    -> AIOps Output ```
+    -> AIOps Output
+  ```
+
+  The final output represents the payment-service timeout conditions at `10:05`
+  and `10:06`, including the metric thresholds exceeded and the related error
+  messages. Both anomaly events were published and consumed successfully.
+
+  ## Reproduce the Demonstration
+
+  From the repository root:
+
+  ```bash
+  python -m venv .venv/calculations
+  source .venv/calculations/bin/activate
+  python -m pip install -r requirements.txt
+  python -m pip install pytest coverage pytest-cov
+  python -m src.aiops_pipeline
+  python -m pytest --cov=src --verbose
+  ```
+
+  The data source is `data/service_data.json`. The pipeline loads all 10 records,
+  passes them to `AnomalyDetector`, publishes detected events through
+  `EventProducer` to the `anomaly-events` `EventTopic`, and retrieves them with
+  `EventConsumer` for the final AIOps output.
