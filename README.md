@@ -110,7 +110,7 @@ configurable thresholds based on historical service behaviour would improve the
 detection approach.
 
 
-## Verify the AIOps Event Flow
+# Verify the AIOps Event Flow
 
 The provided AIOps pipeline was executed with:
 
@@ -149,7 +149,7 @@ The corrected workflow processed 10 records and detected 2 anomalies:
 - `2026-09-20T10:05:00`: high response time and concerning `ERROR` log level.
 - `2026-09-20T10:06:00`: high response time, high CPU utilization, high memory utilization, and concerning `ERROR` log level.
 
-## Execute the End-to-End Pipeline
+# Execute the End-to-End Pipeline
 
 The complete event flow is:
 
@@ -167,7 +167,7 @@ Operational Data
   and `10:06`, including the metric thresholds exceeded and the related error
   messages. Both anomaly events were published and consumed successfully.
 
-  ## Reproduce the Demonstration
+  # Reproduce the Demonstration
 
   From the repository root:
 
