@@ -125,3 +125,27 @@ The detected events were:
 
 2026-09-20T10:05:00: High response time and concerning ERROR log level.
 2026-09-20T10:06:00: High response time, high CPU utilization, high memory utilization, and concerning ERROR log level. 
+
+
+The workflow initially had two issues:
+
+1. The anomaly detector checked for `WARNING`, but the operational data contained `ERROR` log events. The detector was corrected to identify both `WARNING` and `ERROR` as concerning log levels.
+2. The producer and consumer were connected to different topic instances. They were corrected to use the same `anomaly-events` topic.
+
+The corrected workflow processed 10 records and detected 2 anomalies:
+
+- `2026-09-20T10:05:00`: high response time and concerning `ERROR` log level.
+- `2026-09-20T10:06:00`: high response time, high CPU utilization, high memory utilization, and concerning `ERROR` log level.
+
+# Execute the End-to-End Pipeline
+
+The complete event flow is:
+
+```text
+Operational Data
+    -> Anomaly Detection
+    -> Anomaly Event
+    -> Event Producer
+    -> anomaly-events Topic
+    -> Event Consumer
+    -> AIOps Output ```
