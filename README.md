@@ -59,3 +59,43 @@ These two records are clear outliers compared with the surrounding baseline. The
 
 &copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
 
+# Identify Anomalies
+
+The provided anomaly-detection component was used to process all observations in
+`data/service_data.json`.
+
+# Detection Results
+
+The pipeline processed 10 operational records and detected 2 anomalies.
+
+| Timestamp | Metric information | Log information | Detection reasons |
+
+| `2026-09-20T10:05:00` | Response time: `610 ms`; CPU: `75%`; memory: `70%` | Level: `ERROR`; message: `Payment service timeout` | High response time; concerning log level |
+| `2026-09-20T10:06:00` | Response time: `640 ms`; CPU: `94%`; memory: `91%` | Level: `ERROR`; message: `Database connection timeout` | High response time; high CPU utilization; high memory utilization; concerning log level |
+
+The detector uses these thresholds:
+
+- Response time above `500 ms`
+- CPU utilization above `80%`
+- Memory utilization above `80%`
+- Log level of `ERROR` or `WARNING`
+
+Normal observations were not flagged. The records from `10:00` to `10:04`
+and `10:07` to `10:09` had `INFO` logs, successful messages, response times
+between `120` and `150 ms`, CPU utilization between `42%` and `50%`, and memory
+utilization between `51%` and `57%`.
+
+No expected anomalies were missed. The two timeout records at `10:05` and
+`10:06` were detected because they contained concerning `ERROR` logs and
+abnormal metric values. No normal event was incorrectly flagged.
+
+The detection result includes the timestamp, service name, anomaly type, source
+record, and reasons for each anomaly, making it possible to understand why each
+record was flagged.
+
+# Limitation and Possible Improvement
+
+The detector uses fixed thresholds, so it may miss gradual performance
+degradation or flag a legitimate short-term spike. A rolling baseline or
+configurable thresholds based on historical service behaviour would improve the
+detection approach.
