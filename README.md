@@ -99,3 +99,29 @@ The detector uses fixed thresholds, so it may miss gradual performance
 degradation or flag a legitimate short-term spike. A rolling baseline or
 configurable thresholds based on historical service behaviour would improve the
 detection approach.
+
+
+# Verify the AIOps Event Flow
+
+The provided AIOps pipeline was executed with:
+
+```bash
+python aiops_pipeline.py ```
+
+Records processed: 10
+Anomalies detected: 2
+Events consumed: 2
+
+The event flow was verified as follows:
+
+The anomaly detector identified abnormal records at 2026-09-20T10:05:00 and 2026-09-20T10:06:00.
+For each abnormal record, the detector created an event with type ANOMALY.
+The EventProducer published each event to the anomaly-events topic.
+The EventTopic stored the published events.
+The EventConsumer received both events from the same topic.
+The consumed events were returned by the pipeline and printed by the downstream AIOps output.
+
+The detected events were:
+
+2026-09-20T10:05:00: High response time and concerning ERROR log level.
+2026-09-20T10:06:00: High response time, high CPU utilization, high memory utilization, and concerning ERROR log level. 
